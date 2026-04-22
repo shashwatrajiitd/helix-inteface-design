@@ -13,14 +13,17 @@ window.TopNav = ({ persona, setPersona, panel, setPanel, breadcrumb, onHome }) =
       <div className="flex items-center justify-between h-[52px] px-5">
         <div className="flex items-center gap-4">
           <button onClick={onHome} className="flex items-center gap-2 group">
-            <div className="w-6 h-6 rounded-[5px] bg-stone-900 flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/40 via-transparent to-indigo-600/40" />
-              <div className="w-2.5 h-2.5 border border-white rounded-full relative" style={{ transform: 'rotate(45deg)' }}>
-                <div className="absolute inset-[2px] border-l border-white rounded-full" />
-              </div>
+            <div className="w-6 h-6 rounded-[5px] flex items-center justify-center relative overflow-hidden" style={{background:'linear-gradient(135deg,#9B1FA8 0%,#C950DB 100%)'}}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="7" r="4.5" stroke="white" strokeWidth="1.5"/>
+                <circle cx="7" cy="7" r="2" fill="white" opacity="0.9"/>
+                <path d="M7 2 Q9 5 7 7 Q5 9 7 12" stroke="white" strokeWidth="1" fill="none" opacity="0.7"/>
+              </svg>
             </div>
-            <span className="text-[15px] font-semibold text-stone-900 tracking-[-0.01em]">Helix</span>
-            <span className="text-[9.5px] font-mono text-stone-400 mt-0.5 ml-0.5 tracking-wider">0.4 · SANDBOX</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-semibold text-stone-900 tracking-[-0.01em]">Helix</span>
+              <span className="text-[9.5px] text-stone-400 tracking-wide font-mono">by purplle</span>
+            </div>
           </button>
 
           <div className="h-4 w-px bg-stone-200" />
@@ -47,7 +50,7 @@ window.TopNav = ({ persona, setPersona, panel, setPanel, breadcrumb, onHome }) =
                       <button
                         key={p.id}
                         onClick={() => { setPersona(p.id); setOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-stone-50 transition-colors ${p.id === persona ? 'bg-violet-50/40' : ''}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-stone-50 transition-colors ${p.id === persona ? 'bg-[#FAF0FC]/40' : ''}`}
                       >
                         <div className={`w-7 h-7 rounded-md flex items-center justify-center ${p.id === persona ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600'}`}>
                           <Icon className="w-3.5 h-3.5" />

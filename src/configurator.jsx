@@ -19,7 +19,7 @@ window.LayerConfigurator = ({ onNext, onBack, stepper }) => {
           <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500 mb-1">Detected slots</div>
           <div className="flex items-baseline justify-between">
             <div className="font-display text-[20px] font-medium text-stone-900 tracking-[-0.01em]">{layers.length} slots</div>
-            <button className="text-[10.5px] text-violet-700 hover:text-violet-900 font-medium flex items-center gap-1"><L.Bot className="w-3 h-3" /> Auto-fill</button>
+            <button className="text-[10.5px] text-[#9B1FA8] hover:text-[#5D0F66] font-medium flex items-center gap-1"><L.Bot className="w-3 h-3" /> Auto-fill</button>
           </div>
           <div className="mt-2.5 flex items-center gap-1 flex-wrap">
             {Object.entries(window.STRATEGY_META).map(([k, m]) => {
@@ -88,7 +88,7 @@ window.LayerConfigurator = ({ onNext, onBack, stepper }) => {
                     <button key={key} onClick={() => updateLayer(current.id, { strategy: key })} className={`flex items-center gap-1.5 p-2 rounded-md border transition-all text-left ${active ? 'border-stone-900 bg-stone-50' : 'border-stone-200 hover:border-stone-400'}`}>
                       <Icon className="w-3 h-3" style={{ color: m.swatch }} />
                       <span className="text-[11.5px] font-semibold text-stone-900 flex-1">{m.label}</span>
-                      {suggested && !active && <span className="text-[9px] font-mono text-violet-600">suggested</span>}
+                      {suggested && !active && <span className="text-[9px] font-mono text-[#9B1FA8]">suggested</span>}
                     </button>
                   );
                 })}
@@ -126,7 +126,7 @@ const RuleConfig = ({ layer }) => (
   <div className="space-y-4">
     <div><FieldLabel>Data block</FieldLabel><select className="w-full text-[12.5px] bg-stone-50 border border-stone-200 rounded-md px-3 h-8">{window.DATA_BLOCKS.map(d => <option key={d.id}>{d.label} ({d.rows})</option>)}</select></div>
     <div>
-      <div className="flex items-center justify-between mb-1.5"><FieldLabel>Binding</FieldLabel><button className="text-[9.5px] font-mono text-violet-700 mb-1.5">visual binder</button></div>
+      <div className="flex items-center justify-between mb-1.5"><FieldLabel>Binding</FieldLabel><button className="text-[9.5px] font-mono text-[#9B1FA8] mb-1.5">visual binder</button></div>
       <input defaultValue={layer.id === 'bg_left' ? 'palette_library.primary_light[{brand_id}]' : 'catalog.field[{product_id}]'} className="w-full text-[12px] bg-stone-50 border border-stone-200 rounded-md px-3 h-8 font-mono" />
       <div className="mt-1 flex items-center gap-1 text-[10.5px] text-emerald-700"><L.Check className="w-2.5 h-2.5" /> resolves for DERMDOC · BL_0241</div>
     </div>
@@ -139,7 +139,7 @@ const TextGenConfig = ({ layer }) => {
   const d = { benefit_1_text: { prompt: 'Rephrase the benefit {benefit_1} as a 2–3 word front-of-pack claim. Keep clinical confidence.', max: 24 }, benefit_2_text: { prompt: 'Rephrase {benefit_2} as a complementary 2–3 word claim.', max: 24 }, hashtag: { prompt: 'Branded hashtag for {brand_name} × {hero_ingredient}. PascalCase.', max: 18 } }[layer.id] || { prompt: '', max: 40 };
   return (
     <div className="space-y-4">
-      <div><div className="flex items-center justify-between mb-1.5"><FieldLabel>Prompt template</FieldLabel><button className="text-[9.5px] font-mono text-violet-700 mb-1.5">+ variable</button></div><textarea rows={4} defaultValue={d.prompt} className="w-full text-[12px] bg-stone-50 border border-stone-200 rounded-md px-3 py-2 font-mono resize-none" /></div>
+      <div><div className="flex items-center justify-between mb-1.5"><FieldLabel>Prompt template</FieldLabel><button className="text-[9.5px] font-mono text-[#9B1FA8] mb-1.5">+ variable</button></div><textarea rows={4} defaultValue={d.prompt} className="w-full text-[12px] bg-stone-50 border border-stone-200 rounded-md px-3 py-2 font-mono resize-none" /></div>
       <div className="grid grid-cols-2 gap-3">
         <div><FieldLabel>Model</FieldLabel><select className="w-full text-[12.5px] bg-stone-50 border border-stone-200 rounded-md px-3 h-8"><option>gemini-2.5-flash</option><option>claude-haiku-4.5</option></select></div>
         <div><FieldLabel>Max chars</FieldLabel><input type="number" defaultValue={d.max} className="w-full text-[12.5px] bg-stone-50 border border-stone-200 rounded-md px-3 h-8 tabular-nums" /></div>

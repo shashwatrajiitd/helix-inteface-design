@@ -13,6 +13,10 @@ const AX_BASES = [
 window.CreateRunModal = ({ template, onClose, onComplete }) => {
   const [mode, setMode] = React.useState('manual');
   const [products, setProducts] = React.useState(12);
+  const [productSource, setProductSource] = React.useState('segment');
+  const [csvState, setCsvState] = React.useState(null); // null | 'uploading' | 'done'
+  const [pickOpen, setPickOpen] = React.useState(false);
+  const [pickedSkus, setPickedSkus] = React.useState([]);
   const [campaign, setCampaign] = React.useState('Hydration Week W17');
   const [approval, setApproval] = React.useState('brand-auto');
   const [axes, setAxes] = React.useState([
@@ -21,8 +25,28 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
     { id: 'ax3', var: '{tone}',              mode: 'vary', fixValue: '',       values: ['clinical-confident', 'warm'] },
   ]);
 
+  const DEMO_SKUS = [
+    { sku: 'BL_0241', name: 'Squalane Body Lotion',  brand: 'DERMDOC' },
+    { sku: 'NS_0118', name: 'Niacinamide Serum',      brand: 'DERMDOC' },
+    { sku: 'RN_0331', name: 'Retinol Night Cream',    brand: 'DERMDOC' },
+    { sku: 'VC_0442', name: 'Vitamin C Serum',        brand: 'DERMDOC' },
+    { sku: 'SF_0198', name: 'Squalane Face Oil',      brand: 'DERMDOC' },
+    { sku: 'PE_0501', name: 'Peptide Eye Cream',      brand: 'DERMDOC' },
+    { sku: 'HS_0612', name: 'Hydra Sunscreen',        brand: 'DERMDOC' },
+    { sku: 'GV_0812', name: 'Rose Glow Mist',         brand: 'GOOD VIBES' },
+    { sku: 'GV_0391', name: 'Cica Sunscreen',         brand: 'GOOD VIBES' },
+    { sku: 'NB_1104', name: 'Matte Lipstick',         brand: 'NY BAE' },
+    { sku: 'AG_0722', name: 'Hibiscus Shampoo',       brand: 'ALPS GOODNESS' },
+    { sku: 'AG_0894', name: 'Aloe Hair Mask',         brand: 'ALPS GOODNESS' },
+  ];
+
+  const effectiveProducts = productSource === 'segment' ? products
+    : productSource === 'csv' && csvState === 'done' ? 9
+    : productSource === 'pick' ? pickedSkus.length
+    : 0;
+
   const multiplier = axes.filter(a => a.mode === 'vary').reduce((acc, a) => acc * Math.max(1, a.values.length), 1);
-  const totalVariants = mode === 'manual' ? products * multiplier : 8;
+  const totalVariants = mode === 'manual' ? effectiveProducts * multiplier : 8;
   const estCost = (totalVariants * 2.4).toFixed(2);
   const estTime = Math.ceil(totalVariants * 6 / 10);
 
@@ -32,6 +56,14 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
     const unused = AX_BASES.find(b => !axes.some(a => a.var === b.var)) || AX_BASES[0];
     setAxes([...axes, { id: `ax${Date.now()}`, var: unused.var, mode: 'vary', fixValue: '', values: [unused.presets[0]] }]);
   };
+
+  const handleCsvClick = () => {
+    setProductSource('csv');
+    setCsvState('uploading');
+    setTimeout(() => setCsvState('done'), 1200);
+  };
+
+  const togglePick = (sku) => setPickedSkus(s => s.includes(sku) ? s.filter(x => x !== sku) : [...s, sku]);
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-950/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -72,14 +104,57 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
                       <div className="font-display text-[16px] font-medium text-stone-900">Products</div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      <button className="h-9 rounded-md border border-stone-900 bg-stone-50 text-[11.5px] font-medium text-stone-900 flex flex-col items-start justify-center px-3"><span>From segment</span><span className="text-[9.5px] font-mono text-stone-500">DERMDOC · all SKUs</span></button>
-                      <button className="h-9 rounded-md border border-stone-200 bg-white text-[11.5px] text-stone-600 hover:border-stone-400">Upload CSV</button>
-                      <button className="h-9 rounded-md border border-stone-200 bg-white text-[11.5px] text-stone-600 hover:border-stone-400">Pick manually</button>
+                      <button onClick={() => setProductSource('segment')} className={`h-9 rounded-md border text-[11.5px] font-medium flex flex-col items-start justify-center px-3 transition-colors ${productSource === 'segment' ? 'border-stone-900 bg-stone-50 text-stone-900' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'}`}>
+                        <span>From segment</span><span className="text-[9.5px] font-mono text-stone-500">DERMDOC · all SKUs</span>
+                      </button>
+                      <button onClick={handleCsvClick} className={`h-9 rounded-md border text-[11.5px] font-medium flex items-center justify-center gap-1.5 transition-colors ${productSource === 'csv' ? 'border-stone-900 bg-stone-50 text-stone-900' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'}`}>
+                        {csvState === 'uploading' ? <><div className="w-3 h-3 border border-stone-400 border-t-stone-900 rounded-full animate-spin" />Parsing…</> : csvState === 'done' ? <><L.Check className="w-3 h-3 text-emerald-600" />CSV loaded</> : <><L.Upload className="w-3 h-3" />Upload CSV</>}
+                      </button>
+                      <button onClick={() => { setProductSource('pick'); setPickOpen(true); }} className={`h-9 rounded-md border text-[11.5px] font-medium flex items-center justify-center gap-1.5 transition-colors ${productSource === 'pick' ? 'border-stone-900 bg-stone-50 text-stone-900' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'}`}>
+                        <L.List className="w-3 h-3" />{productSource === 'pick' && pickedSkus.length > 0 ? `${pickedSkus.length} SKUs picked` : 'Pick manually'}
+                      </button>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <input type="range" min="1" max="120" value={products} onChange={(e) => setProducts(Number(e.target.value))} className="flex-1 accent-stone-900" />
-                      <div className="text-[12px] font-mono tabular-nums text-stone-900 w-[6ch] text-right">{products} SKUs</div>
-                    </div>
+
+                    {/* CSV success banner */}
+                    {productSource === 'csv' && csvState === 'done' && (
+                      <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-md text-[11.5px] text-emerald-800">
+                        <L.Check className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                        <span><span className="font-mono font-semibold">skus_hydration_w17.csv</span> · 9 SKUs loaded · 2 skipped (missing catalog entry)</span>
+                        <button onClick={() => { setCsvState(null); setProductSource('segment'); }} className="ml-auto text-stone-400 hover:text-stone-700"><L.X className="w-3 h-3" /></button>
+                      </div>
+                    )}
+
+                    {/* Pick manually inline panel */}
+                    {pickOpen && productSource === 'pick' && (
+                      <div className="mb-3 bg-white border border-stone-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 border-b border-stone-200 bg-stone-50/60">
+                          <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500">Select SKUs · {pickedSkus.length} picked</div>
+                          <button onClick={() => setPickOpen(false)} className="text-[11px] text-[#9B1FA8] font-medium hover:underline">Done</button>
+                        </div>
+                        <div className="max-h-[220px] overflow-auto divide-y divide-stone-100">
+                          {DEMO_SKUS.map(s => {
+                            const on = pickedSkus.includes(s.sku);
+                            return (
+                              <button key={s.sku} onClick={() => togglePick(s.sku)} className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-stone-50 transition-colors ${on ? 'bg-[#FAF0FC]/40' : ''}`}>
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${on ? 'bg-[#9B1FA8] border-[#9B1FA8]' : 'border-stone-300'}`}>
+                                  {on && <L.Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[12px] font-medium text-stone-900 truncate">{s.name}</div>
+                                  <div className="text-[10px] font-mono text-stone-500">{s.sku} · {s.brand}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {productSource === 'segment' && (
+                      <div className="flex items-center gap-3">
+                        <input type="range" min="1" max="120" value={products} onChange={(e) => setProducts(Number(e.target.value))} className="flex-1" style={{accentColor:'#9B1FA8'}} />
+                        <div className="text-[12px] font-mono tabular-nums text-stone-900 w-[6ch] text-right">{products} SKUs</div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-white border border-stone-200 rounded-xl p-5">
@@ -103,11 +178,11 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
                   <div className="bg-white border border-stone-200 rounded-xl p-5">
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-md bg-violet-600 text-white flex items-center justify-center text-[10px] font-mono font-semibold">3</div>
+                        <div className="w-5 h-5 rounded-md bg-[#9B1FA8] text-white flex items-center justify-center text-[10px] font-mono font-semibold">3</div>
                         <div className="font-display text-[16px] font-medium text-stone-900">Variation axes</div>
                         <window.Pill tone="purple">× {multiplier} variants/SKU</window.Pill>
                       </div>
-                      <button onClick={addAxis} className="h-7 px-2 text-[11px] font-medium text-violet-700 hover:bg-violet-50 rounded-md flex items-center gap-1"><L.Plus className="w-3 h-3" /> Add axis</button>
+                      <button onClick={addAxis} className="h-7 px-2 text-[11px] font-medium text-[#9B1FA8] hover:bg-[#FAF0FC] rounded-md flex items-center gap-1"><L.Plus className="w-3 h-3" /> Add axis</button>
                     </div>
                     <p className="text-[11.5px] text-stone-500 mb-4 ml-7">Define what <em>varies</em> across variants. Fix the rest. Vary-axes cross-multiply.</p>
 
@@ -122,7 +197,7 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
                               </select>
                               <div className="flex items-center bg-white border border-stone-200 rounded p-0.5">
                                 <button onClick={() => updateAxis(ax.id, { mode: 'fix' })}  className={`px-2 h-5 rounded text-[10.5px] ${ax.mode === 'fix'  ? 'bg-stone-900 text-white' : 'text-stone-500'}`}>fix</button>
-                                <button onClick={() => updateAxis(ax.id, { mode: 'vary' })} className={`px-2 h-5 rounded text-[10.5px] ${ax.mode === 'vary' ? 'bg-violet-600 text-white' : 'text-stone-500'}`}>vary</button>
+                                <button onClick={() => updateAxis(ax.id, { mode: 'vary' })} className={`px-2 h-5 rounded text-[10.5px] ${ax.mode === 'vary' ? 'bg-[#9B1FA8] text-white' : 'text-stone-500'}`}>vary</button>
                               </div>
                               <span className="text-[10.5px] text-stone-500">across</span>
                               {ax.mode === 'fix' ? (
@@ -141,7 +216,7 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
                                   const on = ax.values.includes(p);
                                   return (
                                     <button key={p} onClick={() => updateAxis(ax.id, { values: on ? ax.values.filter(v => v !== p) : [...ax.values, p] })}
-                                      className={`px-2 h-6 rounded text-[10.5px] border transition-colors ${on ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'}`}>
+                                      className={`px-2 h-6 rounded text-[10.5px] border transition-colors ${on ? 'bg-[#9B1FA8] text-white border-[#9B1FA8]' : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'}`}>
                                       {on && <L.Check className="w-2.5 h-2.5 inline mr-0.5" strokeWidth={3} />}{p}
                                     </button>
                                   );
@@ -154,10 +229,10 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
                       })}
                     </div>
 
-                    <div className="mt-4 p-3 bg-violet-50/40 border border-violet-200 rounded-lg flex items-start gap-2.5">
-                      <L.Calculator className="w-3.5 h-3.5 text-violet-700 flex-shrink-0 mt-0.5" />
-                      <div className="text-[11.5px] text-violet-900 leading-relaxed">
-                        <span className="font-mono">{products} SKUs</span> ×{' '}
+                    <div className="mt-4 p-3 bg-[#FAF0FC]/40 border border-[#E4B8F0] rounded-lg flex items-start gap-2.5">
+                      <L.Calculator className="w-3.5 h-3.5 text-[#9B1FA8] flex-shrink-0 mt-0.5" />
+                      <div className="text-[11.5px] text-[#5D0F66] leading-relaxed">
+                        <span className="font-mono">{effectiveProducts} SKUs</span> ×{' '}
                         {axes.filter(a => a.mode === 'vary').map((a, i) => <React.Fragment key={a.id}>{i > 0 && ' × '}<span className="font-mono">{a.values.length}</span></React.Fragment>)}
                         {' '}= <span className="font-semibold tabular-nums">{totalVariants.toLocaleString()} variants</span>
                       </div>
@@ -195,9 +270,9 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
               )}
 
               {mode === 'agent' && (
-                <div className="bg-gradient-to-br from-violet-50/60 to-white border border-violet-200 rounded-xl p-6">
+                <div className="bg-gradient-to-br from-[#F3E0F7]/60 to-white border border-[#E4B8F0] rounded-xl p-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <L.Bot className="w-4 h-4 text-violet-700" />
+                    <L.Bot className="w-4 h-4 text-[#9B1FA8]" />
                     <div className="font-display text-[16px] font-medium text-stone-900">Let Helix ideate</div>
                   </div>
                   <p className="text-[12.5px] text-stone-600 mb-3">Helix will produce 5 angle variants per SKU (benefit-led / ingredient-led / texture / routine / comparison) and self-score them against your top-performing siblings.</p>
@@ -212,8 +287,8 @@ window.CreateRunModal = ({ template, onClose, onComplete }) => {
 
               <div className="space-y-2.5 mb-5">
                 <div className="flex justify-between items-baseline"><span className="text-[11.5px] text-stone-500">Template</span><span className="text-[11.5px] font-medium text-stone-900 text-right">{template.name}<br/><span className="text-[9.5px] font-mono text-stone-400">{template.code}</span></span></div>
-                <div className="flex justify-between items-center"><span className="text-[11.5px] text-stone-500">Products</span><span className="text-[12px] font-medium text-stone-900 tabular-nums">{products}</span></div>
-                <div className="flex justify-between items-center"><span className="text-[11.5px] text-stone-500">Vary factor</span><span className="text-[12px] font-medium text-violet-700 tabular-nums">× {multiplier}</span></div>
+                <div className="flex justify-between items-center"><span className="text-[11.5px] text-stone-500">Products</span><span className="text-[12px] font-medium text-stone-900 tabular-nums">{effectiveProducts}</span></div>
+                <div className="flex justify-between items-center"><span className="text-[11.5px] text-stone-500">Vary factor</span><span className="text-[12px] font-medium text-[#9B1FA8] tabular-nums">× {multiplier}</span></div>
                 <div className="pt-2 border-t border-stone-100 flex justify-between items-baseline">
                   <span className="text-[11.5px] text-stone-500">Total variants</span>
                   <span className="font-display text-[28px] font-medium text-stone-900 tabular-nums leading-none">{totalVariants.toLocaleString()}</span>

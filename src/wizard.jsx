@@ -70,7 +70,7 @@ window.AddTemplateWizard = ({ onClose, onComplete }) => {
                   <div className="flex flex-wrap gap-1.5"><window.Pill tone="neutral">High layer count</window.Pill><window.Pill tone="neutral">Tight creative control</window.Pill></div>
                 </button>
                 <button onClick={() => setSource('helix')} className={`text-left p-6 rounded-xl border transition-all ${source === 'helix' ? 'border-stone-900 bg-white shadow-sm ring-1 ring-stone-900' : 'border-stone-200 bg-white hover:border-stone-400'}`}>
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center mb-4"><L.Wand2 className="w-4.5 h-4.5 text-violet-700" /></div>
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#F3E0F7] to-[#E4B8F0] flex items-center justify-center mb-4"><L.Wand2 className="w-4.5 h-4.5 text-[#9B1FA8]" /></div>
                   <div className="flex items-center gap-2 mb-1"><div className="font-display text-[20px] font-medium text-stone-900 tracking-[-0.01em]">Generate with Helix</div><window.Pill tone="purple">Beta</window.Pill></div>
                   <div className="text-[12.5px] text-stone-500 mb-4 leading-relaxed">Describe the intent — Helix produces a light PSD skeleton optimised for generative fill. Best for high-variance creative.</div>
                   <div className="flex flex-wrap gap-1.5"><window.Pill tone="purple">Light layers</window.Pill><window.Pill tone="purple">GenAI-heavy</window.Pill></div>
@@ -88,7 +88,7 @@ window.AddTemplateWizard = ({ onClose, onComplete }) => {
               <p className="text-stone-500 text-[14px] mb-9">{source === 'upload' ? 'PSD / PSB up to 500 MB. We\'ll parse layers, extract geometry, and propose slot strategies.' : 'Helix will generate a base template optimised for this brief.'}</p>
 
               {source === 'upload' && (
-                <button onClick={startUpload} disabled={parsing || uploaded} className={`w-full rounded-xl border-2 border-dashed p-14 text-center transition-all ${uploaded ? 'border-emerald-400 bg-emerald-50/40' : parsing ? 'border-violet-400 bg-violet-50/30' : 'border-stone-300 bg-white hover:border-stone-500 hover:bg-stone-50/50'}`}>
+                <button onClick={startUpload} disabled={parsing || uploaded} className={`w-full rounded-xl border-2 border-dashed p-14 text-center transition-all ${uploaded ? 'border-emerald-400 bg-emerald-50/40' : parsing ? 'border-[#C970DB] bg-[#FAF0FC]/30' : 'border-stone-300 bg-white hover:border-stone-500 hover:bg-stone-50/50'}`}>
                   {uploaded ? (
                     <>
                       <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3"><L.Check className="w-6 h-6 text-emerald-700" /></div>
@@ -98,7 +98,7 @@ window.AddTemplateWizard = ({ onClose, onComplete }) => {
                     </>
                   ) : parsing ? (
                     <>
-                      <div className="w-12 h-12 rounded-full border-2 border-violet-300 border-t-violet-700 animate-spin mx-auto mb-3" />
+                      <div className="w-12 h-12 rounded-full border-2 border-[#C970DB] border-t-[#9B1FA8] animate-spin mx-auto mb-3" />
                       <div className="font-display text-[18px] font-medium text-stone-900 mb-1">Parsing PSD…</div>
                       <div className="text-[11.5px] font-mono text-stone-500">Extracting layer geometry · running slot inference</div>
                     </>
@@ -166,8 +166,8 @@ window.AutoFillReview = ({ onBack, onNext }) => {
       <div className="flex items-start justify-between mb-2">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center"><L.Bot className="w-3.5 h-3.5 text-violet-700" /></div>
-            <span className="text-[10.5px] font-mono uppercase tracking-[0.14em] text-violet-700 font-semibold">Helix auto-fill · proposal</span>
+            <div className="w-6 h-6 rounded-md bg-[#F3E0F7] flex items-center justify-center"><L.Bot className="w-3.5 h-3.5 text-[#9B1FA8]" /></div>
+            <span className="text-[10.5px] font-mono uppercase tracking-[0.14em] text-[#9B1FA8] font-semibold">Helix auto-fill · proposal</span>
           </div>
           <h2 className="font-display text-[30px] font-medium text-stone-900 tracking-[-0.02em] mb-1">We've proposed fill logic for {accepted}/{layers.length} slots.</h2>
           <p className="text-stone-500 text-[13.5px] leading-relaxed max-w-[60ch]">
@@ -234,7 +234,7 @@ window.AutoFillReview = ({ onBack, onNext }) => {
               </div>
               <div className="text-[11.5px] text-stone-600 mb-3 leading-relaxed">
                 Helix proposes <span className="font-semibold text-stone-900">{window.STRATEGY_META[current.strategy].label}</span>.{' '}
-                {current.strategy === 'rule' && <>Bound to <span className="font-mono text-violet-700">catalog.{current.name.replace('_text', '').replace('_display', '')}</span>.</>}
+                {current.strategy === 'rule' && <>Bound to <span className="font-mono text-[#9B1FA8]">catalog.{current.name.replace('_text', '').replace('_display', '')}</span>.</>}
                 {current.strategy === 'textgen' && <>2–3 word LLM claim, tone-constrained.</>}
                 {current.strategy === 'imagegen' && <>Imagen-3 product photograph with multimodal reference.</>}
                 {current.strategy === 'static' && <>Literal value — will not vary across runs.</>}
@@ -245,10 +245,10 @@ window.AutoFillReview = ({ onBack, onNext }) => {
               </div>
             </div>
           )}
-          <div className="bg-violet-50/60 border border-violet-200 rounded-xl p-4">
+          <div className="bg-[#FAF0FC]/60 border border-[#E4B8F0] rounded-xl p-4">
             <div className="flex gap-2.5">
-              <L.Info className="w-3.5 h-3.5 text-violet-700 flex-shrink-0 mt-0.5" />
-              <div className="text-[11.5px] text-violet-900 leading-relaxed">
+              <L.Info className="w-3.5 h-3.5 text-[#9B1FA8] flex-shrink-0 mt-0.5" />
+              <div className="text-[11.5px] text-[#5D0F66] leading-relaxed">
                 You can always refine slot-by-slot in the full <span className="font-semibold">Layer Configurator</span> (next step). Auto-fill is just a starting point.
               </div>
             </div>

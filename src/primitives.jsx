@@ -8,7 +8,7 @@ const L = window.LucideIcons;
 window.Pill = ({ children, tone = 'neutral', className = '' }) => {
   const tones = {
     neutral: 'bg-stone-100 text-stone-700 border-stone-200',
-    purple:  'bg-violet-50 text-violet-800 border-violet-200',
+    purple:  'bg-[#FAF0FC] text-[#7A1585] border-[#E4B8F0]',
     green:   'bg-emerald-50 text-emerald-800 border-emerald-200',
     amber:   'bg-amber-50 text-amber-800 border-amber-200',
     rose:    'bg-rose-50 text-rose-800 border-rose-200',
@@ -25,7 +25,7 @@ window.Pill = ({ children, tone = 'neutral', className = '' }) => {
 // ---- Strategy meta -----------------------------------------
 window.STRATEGY_META = {
   static:   { label: 'Static',     iconKey: 'Lock',     tone: 'neutral', swatch: '#78716C', desc: 'Fixed, non-varying content' },
-  rule:     { label: 'Rule-based', iconKey: 'Database', tone: 'purple',  swatch: '#7C3AED', desc: 'Data block binding with transforms' },
+  rule:     { label: 'Rule-based', iconKey: 'Database', tone: 'purple',  swatch: '#9B1FA8', desc: 'Data block binding with transforms' },
   textgen:  { label: 'Text Gen',   iconKey: 'Type',     tone: 'amber',   swatch: '#D97706', desc: 'LLM-generated copy with constraints' },
   imagegen: { label: 'Image Gen',  iconKey: 'Sparkles', tone: 'rose',    swatch: '#E11D48', desc: 'Model-generated imagery' },
 };

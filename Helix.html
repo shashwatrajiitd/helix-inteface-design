@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Helix · Templated Creative Generation</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  body { background: #FAF9F7; font-family: 'Geist', -apple-system, sans-serif; }
+  #bg-accent {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 72% 52% at 92% -8%,  rgba(155,31,168,0.09) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at -6% 105%, rgba(201,80,219,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 30% 24% at 55% 108%, rgba(155,31,168,0.05) 0%, transparent 60%);
+  }
+  #root { position: relative; z-index: 1; }
+  .font-display { font-family: 'Fraunces', Georgia, serif; font-variation-settings: "opsz" 144, "SOFT" 30; }
+  .font-mono    { font-family: 'Geist Mono', 'JetBrains Mono', monospace; }
+  * { font-feature-settings: "ss01" on, "cv11" on; }
+  @keyframes slide-in-from-right { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .animate-in { animation-duration: 260ms; animation-fill-mode: both; }
+  .slide-in-from-right { animation-name: slide-in-from-right; }
+  :root {
+    --p-accent: #9B1FA8;
+    --p-accent-light: #FAF0FC;
+    --p-accent-border: #E4B8F0;
+    --p-accent-mid: #C950DB;
+  }
+  .p-accent-bg      { background-color: var(--p-accent) !important; }
+  .p-accent-text    { color: var(--p-accent) !important; }
+  .p-accent-border  { border-color: var(--p-accent) !important; }
+  .p-accent-light   { background-color: var(--p-accent-light) !important; }
+  .p-accent-grad    { background: linear-gradient(135deg, var(--p-accent) 0%, var(--p-accent-mid) 100%) !important; }
+</style>
+</head>
+<body>
+<div id="bg-accent"></div>
+<div id="root"></div>
+<script>
+  // Build lucide icon component map -> window.LucideIcons.IconName
+  (function () {
+    const R = window.React;
+    const { icons } = window.lucide;
+    const mk = (name) => {
+      const def = icons[name];
+      if (!def) return null;
+      return (props = {}) => {
+        const { className = '', strokeWidth = 2, style = {} } = props;
+        // lucide def shape: [tag, attrs, children] OR iconNode array of [tag, attrs] pairs
+        let tag, attrs, children;
+        if (Array.isArray(def) && def.length === 3 && typeof def[0] === 'string' && typeof def[1] === 'object') {
+          [tag, attrs, children] = def;
+        } else {
+          // iconNode only — wrap in svg
+          tag = 'svg';
+          attrs = { xmlns: 'http://www.w3.org/2000/svg', width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeLinecap: 'round', strokeLinejoin: 'round' };
+          children = def;
+        }
+        const kids = (children || []).map(([t, a], i) => R.createElement(t, { ...a, key: i }));
+        return R.createElement(tag, {
+          ...attrs,
+          strokeWidth,
+          className: `lucide ${className}`,
+          style,
+          ...(props.onClick ? { onClick: props.onClick } : {}),
+        }, ...kids);
+      };
+    };
+    const map = {};
+    const want = ['Palette','Package','Megaphone','ShoppingCart','Image','FileText','Sparkles','Layers','Search','Bell','Grid3x3','List','Plus','ChevronDown','ChevronRight','ChevronLeft','ArrowRight','ArrowLeft','ArrowUpRight','Check','CheckCheck','AlertCircle','Clock','Flag','FolderOpen','X','Upload','Wand2','Info','Bot','Edit3','Play','Save','Type','Lock','Database','Circle','Box','TrendingUp','Eye','Download','Calendar','Calculator','Move','Paintbrush','MoreHorizontal','Zap'];
+    want.forEach(name => { if (icons[name]) map[name] = mk(name); });
+    // Fallbacks/aliases
+    map.ImageIcon = map.Image || map.ImageIcon;
+    if (!map.Grid3x3) map.Grid3x3 = mk('Grid3X3') || mk('LayoutGrid');
+    // Debug signal
+    window.__LucideMissing = want.filter(n => !map[n]);
+    window.LucideIcons = map;
+  })();
+</script>
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/primitives.jsx"></script>
+<script type="text/babel" src="src/nav.jsx"></script>
+<script type="text/babel" src="src/configurator.jsx"></script>
+<script type="text/babel" src="src/wizard.jsx"></script>
+<script type="text/babel" src="src/run_modal.jsx"></script>
+<script type="text/babel" src="src/library.jsx"></script>
+<script type="text/babel">
+  const { useState, useMemo } = React;
+  const L = window.LucideIcons;
+
+  function App() {
+    const [persona, setPersona] = useState('brand');
+    const [panel, setPanel] = useState('studio');
+    const [view, setView] = useState('tracks');
+    const [selectedTrack, setSelectedTrack] = useState(null);
+    const [selectedTemplate, setSelectedTemplate] = useState(null);
+    const [addTemplateOpen, setAddTemplateOpen] = useState(false);
+    const [runModalOpen, setRunModalOpen] = useState(false);
+    const [assetDetail, setAssetDetail] = useState(null);
+    const [toast, setToast] = useState(null);
+
+    const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3200); };
+
+    const goHome = () => { setView('tracks'); setSelectedTrack(null); setSelectedTemplate(null); setPanel('studio'); };
+
+    const breadcrumb = useMemo(() => {
+      const crumbs = [];
+      const p = window.PERSONAS.find(pp => pp.id === persona);
+      crumbs.push({ label: p.label, onClick: goHome });
+      if (panel === 'library') {
+        crumbs.push({ label: 'Asset Library', onClick: () => {} });
+      } else {
+        if (selectedTrack) crumbs.push({ label: selectedTrack.label, onClick: () => { setView('templates'); setSelectedTemplate(null); } });
+        if (selectedTemplate) crumbs.push({ label: selectedTemplate.name, onClick: () => {} });
+      }
+      return crumbs;
+    }, [persona, panel, selectedTrack, selectedTemplate]);
+
+    return (
+      <div className="min-h-screen bg-[#FAF9F7]">
+        <window.TopNav
+          persona={persona}
+          setPersona={(id) => { setPersona(id); setView('tracks'); setSelectedTrack(null); setSelectedTemplate(null); setPanel('studio'); }}
+          panel={panel}
+          setPanel={(p) => { setPanel(p); if (p === 'library') setView('tracks'); }}
+          breadcrumb={breadcrumb}
+          onHome={goHome}
+        />
+
+        {panel === 'studio' && view === 'tracks' && (
+          <window.TracksView persona={persona} onSelectTrack={(t) => { setSelectedTrack(t); setView('templates'); }} />
+        )}
+
+        {panel === 'studio' && view === 'templates' && selectedTrack && (
+          <window.TemplatesView
+            track={selectedTrack}
+            persona={persona}
+            onAddTemplate={() => setAddTemplateOpen(true)}
+            onSelectTemplate={(t) => { setSelectedTemplate(t); setView('detail'); }}
+          />
+        )}
+
+        {panel === 'studio' && view === 'detail' && selectedTemplate && (
+          <window.TemplateDetail
+            template={selectedTemplate}
+            onBack={() => { setView('templates'); setSelectedTemplate(null); }}
+            onCreateRun={() => setRunModalOpen(true)}
+          />
+        )}
+
+        {panel === 'library' && <window.AssetLibrary onOpenDetail={setAssetDetail} />}
+
+        {addTemplateOpen && (
+          <window.AddTemplateWizard
+            onClose={() => setAddTemplateOpen(false)}
+            onComplete={() => { setAddTemplateOpen(false); showToast('Template submitted for approval — Rhea P. notified'); }}
+          />
+        )}
+
+        {runModalOpen && selectedTemplate && (
+          <window.CreateRunModal
+            template={selectedTemplate}
+            onClose={() => setRunModalOpen(false)}
+            onComplete={() => {
+              setRunModalOpen(false);
+              showToast('Run started — variants queued');
+              setTimeout(() => { setPanel('library'); }, 1500);
+            }}
+          />
+        )}
+
+        {assetDetail && <window.AssetDetailDrawer asset={assetDetail} onClose={() => setAssetDetail(null)} />}
+
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 animate-in slide-in-from-right">
+            <L.Check className="w-4 h-4 text-emerald-400" />
+            <span className="text-[13px]">{toast}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+  // ── Tweaks ──────────────────────────────────────────────
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "accentColor": "#9B1FA8",
+    "accentLabel": "Purplle Magenta",
+    "navStyle": "light",
+    "density": "compact",
+    "roundness": "sharp"
+  }/*EDITMODE-END*/;
+
+  const ACCENT_PRESETS = [
+    { label: 'Purplle Magenta', value: '#9B1FA8', mid: '#C950DB' },
+    { label: 'Deep Plum',       value: '#6B1FA8', mid: '#9B50DB' },
+    { label: 'Hot Pink',        value: '#C2185B', mid: '#E91E8C' },
+    { label: 'Violet',          value: '#5C35CC', mid: '#7C5BF0' },
+    { label: 'Coral',           value: '#D04B2F', mid: '#E8714F' },
+    { label: 'Teal',            value: '#0A7A72', mid: '#0FB8A8' },
+  ];
+
+  let tweaks = { ...TWEAK_DEFAULTS };
+
+  function applyTweaks(t) {
+    const r = document.documentElement.style;
+    r.setProperty('--p-accent',        t.accentColor);
+    r.setProperty('--p-accent-light',  t.accentColor + '14');
+    r.setProperty('--p-accent-border', t.accentColor + '55');
+    const preset = ACCENT_PRESETS.find(p => p.value === t.accentColor);
+    r.setProperty('--p-accent-mid', preset ? preset.mid : t.accentColor + 'CC');
+
+    // Update background accent blobs
+    const bg = document.getElementById('bg-accent');
+    if (bg) {
+      const hex = t.accentColor;
+      const hexToRgb = h => { const x = parseInt(h.slice(1),16); return [(x>>16)&255,(x>>8)&255,x&255].join(','); };
+      try {
+        const rgb = hexToRgb(hex);
+        bg.style.background = [
+          `radial-gradient(ellipse 72% 52% at 92% -8%,  rgba(${rgb},0.09) 0%, transparent 70%)`,
+          `radial-gradient(ellipse 50% 40% at -6% 105%, rgba(${rgb},0.07) 0%, transparent 65%)`,
+          `radial-gradient(ellipse 30% 24% at 55% 108%, rgba(${rgb},0.05) 0%, transparent 60%)`,
+        ].join(',');
+      } catch(e) {}
+    }
+
+    // nav background
+    const nav = document.querySelector('.sticky.top-0');
+    if (nav) nav.style.background = t.navStyle === 'dark' ? '#18181B' : '';
+
+    // density
+    document.documentElement.style.fontSize = t.density === 'compact' ? '13px' : t.density === 'spacious' ? '15px' : '';
+  }
+
+  // Tweaks panel component
+  function TweaksPanel({ onClose }) {
+    const [local, setLocal] = React.useState({ ...tweaks });
+    const update = (k, v) => {
+      const next = { ...local, [k]: v };
+      setLocal(next);
+      tweaks = next;
+      applyTweaks(next);
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: next }, '*');
+    };
+
+    return (
+      <div style={{
+        position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+        background: 'white', border: '1px solid #E7E5E4', borderRadius: 12,
+        boxShadow: '0 8px 32px -8px rgba(0,0,0,0.18)', width: 256, overflow: 'hidden',
+        fontFamily: 'Geist, sans-serif',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px 8px', borderBottom:'1px solid #F5F5F4' }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'#78716C' }}>Tweaks</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#A8A29E', padding:2 }}>✕</button>
+        </div>
+
+        <div style={{ padding:'12px 14px', display:'flex', flexDirection:'column', gap:14 }}>
+          {/* Accent colour */}
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'#A8A29E', marginBottom:6 }}>Brand Accent</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:5 }}>
+              {ACCENT_PRESETS.map(p => (
+                <button key={p.value} onClick={() => update('accentColor', p.value)}
+                  title={p.label}
+                  style={{
+                    height: 32, borderRadius: 6, cursor:'pointer',
+                    background: `linear-gradient(135deg, ${p.value} 0%, ${p.mid} 100%)`,
+                    border: local.accentColor === p.value ? '2px solid #18181B' : '2px solid transparent',
+                    outline: local.accentColor === p.value ? '2px solid white' : 'none',
+                    outlineOffset: -4,
+                    position: 'relative',
+                    transition: 'border 120ms',
+                  }}>
+                  {local.accentColor === p.value && (
+                    <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:13 }}>✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div style={{ marginTop:6, display:'flex', alignItems:'center', gap:6 }}>
+              <input type="color" value={local.accentColor} onChange={e => update('accentColor', e.target.value)}
+                style={{ width:28, height:28, borderRadius:5, border:'1px solid #E7E5E4', cursor:'pointer', padding:2 }} />
+              <span style={{ fontSize:11, fontFamily:'monospace', color:'#78716C' }}>{local.accentColor}</span>
+            </div>
+          </div>
+
+          {/* Nav style */}
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'#A8A29E', marginBottom:6 }}>Nav Style</div>
+            <div style={{ display:'flex', gap:4 }}>
+              {['light','dark'].map(v => (
+                <button key={v} onClick={() => update('navStyle', v)}
+                  style={{ flex:1, height:28, borderRadius:5, cursor:'pointer', fontSize:11, fontWeight:500, textTransform:'capitalize',
+                    background: local.navStyle === v ? '#18181B' : '#F5F5F4',
+                    color: local.navStyle === v ? 'white' : '#78716C',
+                    border: 'none', transition: 'all 120ms' }}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Density */}
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'#A8A29E', marginBottom:6 }}>Density</div>
+            <div style={{ display:'flex', gap:4 }}>
+              {['compact','default','spacious'].map(v => (
+                <button key={v} onClick={() => update('density', v)}
+                  style={{ flex:1, height:28, borderRadius:5, cursor:'pointer', fontSize:10, fontWeight:500, textTransform:'capitalize',
+                    background: local.density === v ? '#18181B' : '#F5F5F4',
+                    color: local.density === v ? 'white' : '#78716C',
+                    border: 'none', transition: 'all 120ms' }}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mount tweaks panel in a separate root
+  const tweaksRoot = document.createElement('div');
+  document.body.appendChild(tweaksRoot);
+  const tweaksReactRoot = ReactDOM.createRoot(tweaksRoot);
+  let tweaksPanelVisible = false;
+
+  function renderTweaksPanel() {
+    tweaksReactRoot.render(
+      tweaksPanelVisible
+        ? React.createElement(TweaksPanel, { onClose: () => { tweaksPanelVisible = false; renderTweaksPanel(); } })
+        : null
+    );
+  }
+
+  // Register listener FIRST, then announce availability
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === '__activate_edit_mode')   { tweaksPanelVisible = true;  renderTweaksPanel(); }
+    if (e.data?.type === '__deactivate_edit_mode') { tweaksPanelVisible = false; renderTweaksPanel(); }
+  });
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+
+  // Apply stored defaults on load
+  applyTweaks(tweaks);
+</script>
+</body>
+</html>

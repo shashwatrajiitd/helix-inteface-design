@@ -148,7 +148,7 @@ window.AssetLibrary = ({ onOpenDetail }) => {
                   <div className="text-[11.5px] text-stone-800">{r.template}</div>
                   <div className="text-[10px] font-mono text-stone-500">{r.templateCode} · {r.templateVersion}</div>
                 </div>
-                <div className="flex flex-wrap gap-1">{r.axes.slice(0, 2).map(a => <span key={a} className="text-[9.5px] font-mono text-violet-700 bg-violet-50 px-1.5 h-4 rounded flex items-center">{a}</span>)}{r.axes.length > 2 && <span className="text-[9.5px] font-mono text-stone-500">+{r.axes.length - 2}</span>}</div>
+                <div className="flex flex-wrap gap-1">{r.axes.slice(0, 2).map(a => <span key={a} className="text-[9.5px] font-mono text-[#9B1FA8] bg-[#FAF0FC] px-1.5 h-4 rounded flex items-center">{a}</span>)}{r.axes.length > 2 && <span className="text-[9.5px] font-mono text-stone-500">+{r.axes.length - 2}</span>}</div>
                 <div className="text-right text-[12px] font-mono text-stone-900 tabular-nums">{r.variants}</div>
                 <div className="text-right">
                   <div className={`text-[12px] font-mono tabular-nums ${parseFloat(r.ctrMedian) < 2.5 ? 'text-rose-700' : 'text-emerald-700'}`}>{r.ctrMedian}</div>
@@ -201,94 +201,190 @@ window.AssetDetailDrawer = ({ asset, onClose }) => {
   const siblingsRun = window.SAMPLE_ASSETS.filter(a => a.runId === asset.runId && a.id !== asset.id);
   const siblingsTemplate = window.SAMPLE_ASSETS.filter(a => a.code === asset.code && a.runId !== asset.runId);
 
+  const underperforms = parseFloat(asset.ctr) < parseFloat(run?.ctrMedian || '3');
+
   return (
     <div className="fixed inset-0 z-50 bg-stone-950/40 backdrop-blur-sm flex justify-end">
-      <div className="bg-[#FAFAF8] w-full max-w-[820px] h-full shadow-2xl border-l border-stone-200 flex flex-col animate-in slide-in-from-right">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-stone-200 bg-white">
-          <div>
-            <div className="text-[9.5px] font-mono uppercase tracking-[0.14em] text-stone-400 mb-0.5">Asset · {asset.sku}</div>
-            <div className="font-display text-[17px] font-medium text-stone-900">{asset.product}</div>
+      <div className="bg-[#FAFAF8] w-full max-w-[1180px] h-full shadow-2xl border-l border-stone-200 flex flex-col animate-in slide-in-from-right">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-stone-200 bg-white flex-shrink-0">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="min-w-0">
+              <div className="text-[9.5px] font-mono uppercase tracking-[0.14em] text-stone-400 mb-0.5">Asset · {asset.sku}</div>
+              <div className="font-display text-[18px] font-medium text-stone-900 tracking-[-0.01em] truncate">{asset.product}</div>
+            </div>
+            <div className="h-7 w-px bg-stone-200" />
+            <div className="flex items-center gap-1.5">
+              {asset.status === 'approved' && <window.Pill tone="green"><L.Check className="w-2.5 h-2.5" />Approved</window.Pill>}
+              {asset.status === 'review'   && <window.Pill tone="amber"><L.Clock className="w-2.5 h-2.5" />In review</window.Pill>}
+              {asset.status === 'flagged'  && <window.Pill tone="rose"><L.Flag className="w-2.5 h-2.5" />Flagged</window.Pill>}
+              <window.Pill tone="subtle">{asset.brand}</window.Pill>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-stone-100 rounded-md text-stone-500"><L.X className="w-4 h-4" /></button>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button className="flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-stone-200 bg-white text-[11.5px] font-medium text-stone-700 hover:border-stone-400"><L.Download className="w-3 h-3" /> Download</button>
+            <button className="flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-stone-200 bg-white text-[11.5px] font-medium text-stone-700 hover:border-stone-400"><L.Flag className="w-3 h-3" /> Flag</button>
+            {asset.status !== 'approved' && <button className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-stone-900 text-white text-[11.5px] font-medium hover:bg-stone-800"><L.Check className="w-3 h-3" /> Approve</button>}
+            <div className="w-px h-4 bg-stone-200 mx-1" />
+            <button onClick={onClose} className="p-1.5 hover:bg-stone-100 rounded-md text-stone-500"><L.X className="w-4 h-4" /></button>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-auto px-6 py-5 space-y-5">
-          <div className="aspect-square max-h-[380px] bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <window.TemplatePreview brandId={asset.brandId} />
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white border border-stone-200 rounded-lg p-3">
-              <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">This variant · CTR</div>
-              <div className={`font-display text-[26px] font-medium tabular-nums mt-0.5 ${parseFloat(asset.ctr) < parseFloat(run?.ctrMedian || '3') ? 'text-rose-700' : 'text-emerald-700'}`}>{asset.ctr}</div>
-              <div className="text-[10.5px] text-stone-500">on {asset.impressions.toLocaleString()} impressions</div>
-            </div>
-            <div className="bg-white border border-stone-200 rounded-lg p-3">
-              <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">Run median</div>
-              <div className="font-display text-[26px] font-medium text-stone-900 tabular-nums mt-0.5">{run?.ctrMedian}</div>
-              <div className="text-[10.5px] text-stone-500">across {run?.variants} siblings</div>
-            </div>
-            <div className="bg-white border border-stone-200 rounded-lg p-3">
-              <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">Template median</div>
-              <div className="font-display text-[26px] font-medium text-stone-900 tabular-nums mt-0.5">3.4%</div>
-              <div className="text-[10.5px] text-stone-500">across all runs</div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500">Lineage</div>
-              <window.Pill tone="subtle">{siblingsRun.length} run · {siblingsTemplate.length} template siblings</window.Pill>
-            </div>
-            <div className="space-y-2.5 text-[11.5px]">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded bg-stone-900 text-white flex items-center justify-center"><L.ImageIcon className="w-3 h-3" /></div>
-                <div className="flex-1"><div className="text-stone-900 font-medium">{asset.product}</div><div className="text-[10px] font-mono text-stone-500">{asset.id} · this asset</div></div>
-              </div>
-              <div className="pl-3 border-l border-dashed border-stone-300 ml-3 space-y-2.5">
-                <div className="flex items-center gap-3 pl-3">
-                  <div className="w-6 h-6 rounded bg-stone-100 border border-stone-200 flex items-center justify-center"><L.Play className="w-3 h-3 text-stone-700" /></div>
-                  <div className="flex-1"><div className="text-stone-900 font-medium">{run?.name}</div><div className="text-[10px] font-mono text-stone-500">{run?.code} · {run?.variants} variants · median {run?.ctrMedian}</div></div>
-                  <button className="text-[10.5px] text-violet-700 hover:underline">Open run</button>
+        {/* Split body: asset LEFT (sticky) · data RIGHT (scroll) */}
+        <div className="flex-1 grid grid-cols-[minmax(0,1fr)_460px] min-h-0">
+          {/* LEFT — asset canvas */}
+          <div className="bg-stone-100/50 border-r border-stone-200 overflow-auto">
+            <div className="min-h-full flex flex-col">
+              <div className="flex-1 flex items-center justify-center p-10">
+                <div className="w-full max-w-[620px] aspect-square bg-white rounded-xl border border-stone-200 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.2)] overflow-hidden">
+                  <window.TemplatePreview brandId={asset.brandId} />
                 </div>
-                <div className="flex items-center gap-3 pl-3">
-                  <div className="w-6 h-6 rounded bg-stone-100 border border-stone-200 flex items-center justify-center"><L.Layers className="w-3 h-3 text-stone-700" /></div>
-                  <div className="flex-1"><div className="text-stone-900 font-medium">{asset.template}</div><div className="text-[10px] font-mono text-stone-500">{asset.code} · template median 3.4%</div></div>
-                  <button className="text-[10.5px] text-violet-700 hover:underline">Open template</button>
+              </div>
+
+              {/* Canvas chrome — zoom + asset meta */}
+              <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-1 bg-white border border-stone-200 rounded-md p-0.5">
+                  <button className="w-7 h-7 rounded hover:bg-stone-100 flex items-center justify-center text-stone-500"><L.ChevronLeft className="w-3.5 h-3.5" /></button>
+                  <span className="px-2 text-[11px] font-mono text-stone-600 tabular-nums">variant 3 / {run?.variants || '—'}</span>
+                  <button className="w-7 h-7 rounded hover:bg-stone-100 flex items-center justify-center text-stone-500"><L.ChevronRight className="w-3.5 h-3.5" /></button>
+                </div>
+                <div className="flex items-center gap-3 text-[10.5px] font-mono text-stone-500 tabular-nums">
+                  <span>1080 × 1080</span>
+                  <span>·</span>
+                  <span>JPEG · 184 KB</span>
+                  <span>·</span>
+                  <span>rendered 2d ago</span>
                 </div>
               </div>
             </div>
-            {siblingsRun.length > 0 && (
-              <div className="mt-4">
-                <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400 mb-1.5">Siblings in this run</div>
-                <div className="grid grid-cols-8 gap-1.5">
-                  {siblingsRun.slice(0, 8).map(s => (
-                    <div key={s.id} className="aspect-square bg-stone-50 rounded border border-stone-200 overflow-hidden"><window.TemplatePreview brandId={s.brandId} /></div>
+          </div>
+
+          {/* RIGHT — data panel */}
+          <div className="bg-white overflow-auto">
+            <div className="p-5 space-y-5">
+
+              {/* Performance */}
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500 mb-2.5">Performance</div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                    <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">Variant CTR</div>
+                    <div className={`font-display text-[22px] font-medium tabular-nums mt-0.5 leading-none ${underperforms ? 'text-rose-700' : 'text-emerald-700'}`}>{asset.ctr}</div>
+                    <div className="text-[10px] text-stone-500 mt-1">{asset.impressions > 0 ? `${asset.impressions.toLocaleString()} imp` : 'no data'}</div>
+                  </div>
+                  <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                    <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">Run median</div>
+                    <div className="font-display text-[22px] font-medium text-stone-900 tabular-nums mt-0.5 leading-none">{run?.ctrMedian || '—'}</div>
+                    <div className="text-[10px] text-stone-500 mt-1">{run?.variants || 0} siblings</div>
+                  </div>
+                  <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                    <div className="text-[9.5px] font-mono uppercase tracking-wider text-stone-400">Template</div>
+                    <div className="font-display text-[22px] font-medium text-stone-900 tabular-nums mt-0.5 leading-none">3.4%</div>
+                    <div className="text-[10px] text-stone-500 mt-1">all runs</div>
+                  </div>
+                </div>
+                {underperforms && asset.ctr !== '—' && (
+                  <div className="mt-2 flex items-start gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-md">
+                    <L.AlertCircle className="w-3.5 h-3.5 text-rose-700 flex-shrink-0 mt-0.5" />
+                    <div className="text-[11px] text-rose-900 leading-relaxed">This variant trails the run median by <span className="font-mono font-semibold tabular-nums">{(parseFloat(run?.ctrMedian || '0') - parseFloat(asset.ctr)).toFixed(1)} pp</span>. Consider regenerating or sending to Helix to re-ideate.</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Lineage */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500">Lineage</div>
+                  <div className="text-[10px] font-mono text-stone-400">asset ← run ← template</div>
+                </div>
+                <div className="bg-stone-50/60 border border-stone-200 rounded-lg p-3.5 space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded bg-stone-900 text-white flex items-center justify-center flex-shrink-0"><L.ImageIcon className="w-3.5 h-3.5" /></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] text-stone-900 font-medium truncate">{asset.product}</div>
+                      <div className="text-[10px] font-mono text-stone-500">{asset.id} · this asset</div>
+                    </div>
+                  </div>
+                  <div className="pl-3.5 border-l border-dashed border-stone-300 ml-3.5 space-y-2.5">
+                    <div className="flex items-center gap-3 pl-3">
+                      <div className="w-7 h-7 rounded bg-white border border-stone-200 flex items-center justify-center flex-shrink-0"><L.Play className="w-3.5 h-3.5 text-stone-700" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12px] text-stone-900 font-medium truncate">{run?.name}</div>
+                        <div className="text-[10px] font-mono text-stone-500 truncate">{run?.code} · {run?.variants} variants · median {run?.ctrMedian}</div>
+                      </div>
+                      <button className="text-[10.5px] text-[#9B1FA8] hover:underline flex items-center gap-0.5 flex-shrink-0">Open <L.ArrowUpRight className="w-2.5 h-2.5" /></button>
+                    </div>
+                    <div className="flex items-center gap-3 pl-3">
+                      <div className="w-7 h-7 rounded bg-white border border-stone-200 flex items-center justify-center flex-shrink-0"><L.Layers className="w-3.5 h-3.5 text-stone-700" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12px] text-stone-900 font-medium truncate">{asset.template}</div>
+                        <div className="text-[10px] font-mono text-stone-500 truncate">{asset.code} · template median 3.4%</div>
+                      </div>
+                      <button className="text-[10.5px] text-[#9B1FA8] hover:underline flex items-center gap-0.5 flex-shrink-0">Open <L.ArrowUpRight className="w-2.5 h-2.5" /></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Context used */}
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500 mb-2.5">Run context applied</div>
+                <div className="bg-stone-50/60 border border-stone-200 rounded-lg divide-y divide-stone-200">
+                  {[
+                    { k: '{brand_id}',          v: asset.brandId,        src: 'run' },
+                    { k: '{product_id}',        v: asset.sku,            src: 'run' },
+                    { k: '{hero_ingredient}',   v: 'Squalane',           src: 'catalog' },
+                    { k: '{season}',            v: 'Winter',             src: 'axis · fix' },
+                    { k: '{campaign_context}',  v: run?.campaign || '—', src: 'axis · vary' },
+                    { k: '{tone}',              v: 'clinical-confident', src: 'axis · vary' },
+                  ].map(r => (
+                    <div key={r.k} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2 text-[11px]">
+                      <span className="font-mono text-[#9B1FA8]">{r.k}</span>
+                      <span className="text-stone-900 font-medium truncate">{r.v}</span>
+                      <span className="text-[9.5px] font-mono text-stone-400 uppercase tracking-wider">{r.src}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
 
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500 mb-2">Refine</div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'geometry', label: 'Tweak geometry', desc: 'Nudges size/position · this variant only',     icon: 'Move',    tone: 'neutral' },
-                { id: 'fill',     label: 'Adjust fill',    desc: 'Swap palette or data binding · this variant',    icon: 'Paintbrush', tone: 'purple' },
-                { id: 'regen',    label: 'Regenerate prompt', desc: 'Re-run textgen/imagegen · same prompt, new seed', icon: 'Wand2', tone: 'amber' },
-                { id: 'ideation', label: 'Send to Helix · re-ideate', desc: 'Propose 3 alternative angles',          icon: 'Bot',     tone: 'rose' },
-              ].map(m => {
-                const Icon = L[m.icon];
-                const active = refineMode === m.id;
-                return (
-                  <button key={m.id} onClick={() => setRefineMode(m.id)} className={`text-left p-3 rounded-lg border transition-colors ${active ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-400'}`}>
-                    <Icon className="w-3.5 h-3.5 text-stone-700 mb-2" />
-                    <div className="text-[12.5px] font-medium text-stone-900">{m.label}</div>
-                    <div className="text-[10.5px] text-stone-500 leading-snug mt-0.5">{m.desc}</div>
-                  </button>
-                );
-              })}
+              {/* Siblings */}
+              {siblingsRun.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500">Siblings in this run</div>
+                    <button className="text-[10.5px] text-[#9B1FA8] hover:underline">View all {siblingsRun.length}</button>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {siblingsRun.slice(0, 10).map(s => (
+                      <div key={s.id} className="aspect-square bg-stone-50 rounded border border-stone-200 overflow-hidden hover:border-stone-900 cursor-pointer"><window.TemplatePreview brandId={s.brandId} /></div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Refine */}
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-stone-500 mb-2.5">Refine</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'geometry', label: 'Tweak geometry',            desc: 'Nudge size / position',            icon: 'Move' },
+                    { id: 'fill',     label: 'Adjust fill',               desc: 'Swap palette or data binding',     icon: 'Paintbrush' },
+                    { id: 'regen',    label: 'Regenerate',                desc: 'Re-run gen · new seed',            icon: 'Wand2' },
+                    { id: 'ideation', label: 'Re-ideate with Helix',      desc: 'Propose 3 alt angles',             icon: 'Bot' },
+                  ].map(m => {
+                    const Icon = L[m.icon];
+                    const active = refineMode === m.id;
+                    return (
+                      <button key={m.id} onClick={() => setRefineMode(active ? null : m.id)} className={`text-left p-2.5 rounded-lg border transition-colors ${active ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-400'}`}>
+                        <Icon className="w-3.5 h-3.5 text-stone-700 mb-1.5" />
+                        <div className="text-[12px] font-medium text-stone-900 leading-tight">{m.label}</div>
+                        <div className="text-[10.5px] text-stone-500 leading-snug mt-0.5">{m.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
